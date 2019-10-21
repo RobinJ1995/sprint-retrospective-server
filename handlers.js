@@ -1,61 +1,106 @@
-export default app => {
+const Validator = require('input-field-validator');
+const DAO = require('./DAO');
+const { TITLE_MAX_LENGTH, TEXT_MAX_LENGTH, VOTE_MODES } = require('./constants');
+const ValidationError = require('./error/ValidationError');
+
+const validate = (input, rules) => {
+    const validator = new Validator(input, rules);
+    if (validator.validate()) {
+        return true;
+    }
+
+    throw new ValidationError(validator.errors);
+};
+
+const errorHandler = (res, error) => {
+    if (error.httpstatus && error.getResponseBody) {
+        return res.status(error.httpstatus).send(error.getResponseBody());
+    }
+
+    return res.status(500).send({
+        message: error.message
+    });
+};
+
+module.exports = app => {
     app.post('/:id/good', (req, res) => {
         validate(req.body, {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        getData(req.params.id).good.push({text: req.body.text, id: uuid(), up: 0, down: 0});
-        return res.status(201).send();
+        new DAO(req.database, req.params.id).addGood(req.body.text)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
-    app.post('/:id/good/:action_id/up', (req, res) => {
-        getData(req.params.id).good.filter(({id}) => id === req.params.action_id)[0].up++;
-        return res.status(201).send();
+    app.post('/:id/good/:good_id/up', (req, res) => {
+        new DAO(req.database, req.params.id).upvoteGood(req.params.good_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
-    app.post('/:id/good/:action_id/down', (req, res) => {
-        getData(req.params.id).good.filter(({id}) => id === req.params.action_id)[0].down++;
-        return res.status(201).send();
+    app.post('/:id/good/:good_id/down', (req, res) => {
+        new DAO(req.database, req.params.id).downvoteGood(req.params.good_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.post('/:id/bad', (req, res) => {
         validate(req.body, {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        getData(req.params.id).bad.push({text: req.body.text, id: uuid(), up: 0, down: 0});
-        return res.status(201).send();
+        new DAO(req.database, req.params.id).addBad(req.body.text)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
-    app.post('/:id/bad/:action_id/up', (req, res) => {
-        getData(req.params.id).bad.filter(({id}) => id === req.params.action_id)[0].up++;
-        return res.status(201).send();
+    app.post('/:id/bad/:bad_id/up', (req, res) => {
+        new DAO(req.database, req.params.id).upvoteBad(req.params.bad_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
-    app.post('/:id/bad/:action_id/down', (req, res) => {
-        getData(req.params.id).bad.filter(({id}) => id === req.params.action_id)[0].down++;
-        return res.status(201).send();
+    app.post('/:id/bad/:bad_id/down', (req, res) => {
+        new DAO(req.database, req.params.id).downvoteBad(req.params.bad_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.post('/:id/action', (req, res) => {
         validate(req.body, {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        getData(req.params.id).actions.push({text: req.body.text, id: uuid(), up: 0, down: 0});
-        return res.status(201).send();
+        new DAO(req.database, req.params.id).addAction(req.body.text)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.post('/:id/action/:action_id/up', (req, res) => {
-        getData(req.params.id).actions.filter(({id}) => id === req.params.action_id)[0].up++;
-        return res.status(201).send();
+        new DAO(req.database, req.params.id).upvoteAction(req.params.action_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.post('/:id/action/:action_id/down', (req, res) => {
-        getData(req.params.id).actions.filter(({id}) => id === req.params.action_id)[0].down++;
-        return res.status(201).send();
+        new DAO(req.database, req.params.id).downvoteActions(req.params.action_id)
+          .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.put('/:id/title', (req, res) => {
         validate(req.body, {
             title: ['required', 'minlength:1', `maxlength:${TITLE_MAX_LENGTH}`]
         });
 
-        getData(req.params.id).title = req.body.title;
-        return res.status(200).send();
+        new DAO(req.database, req.params.id).setTitle(req.body.title)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
+    app.put('/:id/voteMode', (req, res) => {
+        validate(req.body, {
+            voteMode: ['required', `in:${Object.values(VOTE_MODES).join(',')}`]
+        });
+
+        new DAO(req.database, req.params.id).setVoteMode(req.body.voteMode)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
     });
     app.get('/:id/', (req, res) => {
-        return res.status(200).send(getData(req.params.id));
+        new DAO(req.database, req.params.id).getRetro()
+          .then(retro => res.status(200).send(retro))
+          .catch(err => errorHandler(res, err));
     });
 };

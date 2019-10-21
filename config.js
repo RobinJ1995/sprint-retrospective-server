@@ -4,7 +4,9 @@ const config = {
         db: {
             host: 'localhost',
             port: 27017,
-            name: 'sprint-retrospective'
+            name: 'sprint-retrospective',
+            username: 'root',
+            password: 'root'
         }
     },
     production:
