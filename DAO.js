@@ -62,31 +62,49 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
-    addBad = text => this.db.collection(COLLECTION).update({
-        id: this.id
-    }, {
-        '$push': {
-            'bad': {
-                id: uuid(),
-                text,
-                up: 0,
-                down: 0
-            }
+    addBad = text => this.db.collection(COLLECTION).findOne({
+        id: this.id,
+        'bad.text': text
+    }).then(item => {
+        if (item) {
+            throw new DuplicateError('text', text);
         }
-    }, { upsert: true });
 
-    addAction = text => this.db.collection(COLLECTION).update({
-        id: this.id
-    }, {
-        '$push': {
-            'actions': {
-                id: uuid(),
-                text,
-                up: 0,
-                down: 0
+        return this.db.collection(COLLECTION).update({
+            id: this.id
+        }, {
+            '$push': {
+                'bad': {
+                    id: uuid(),
+                    text,
+                    up: 0,
+                    down: 0
+                }
             }
+        }, { upsert: true });
+    });
+
+    addAction = text => this.db.collection(COLLECTION).findOne({
+        id: this.id,
+        'actions.text': text
+    }).then(item => {
+        if (item) {
+            throw new DuplicateError('text', text);
         }
-    }, { upsert: true });
+
+        return this.db.collection(COLLECTION).update({
+            id: this.id
+        }, {
+            '$push': {
+                'actions': {
+                    id: uuid(),
+                    text,
+                    up: 0,
+                    down: 0
+                }
+            }
+        }, { upsert: true });
+    });
 
     upvoteGood = id => this.db.collection(COLLECTION).update({
         'good.id': id
