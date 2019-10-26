@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+  database:
+    image: 'mongo'
+    container_name: 'mongo'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: sprint-retrospective
+      MONGO_DATA_DIR: /var/lib/mongodb
+    volumes:
+      - data-mongo:/var/lib/mongodb
+    restart: always
+
+  api:
+    build: https://github.com/RobinJ1995/sprint-retrospective-server.git
+    image: robinj/sprintretrospective-api
+    ports:
+      - 5432:5432
+    environment:
+      DB_HOST: 'mongo'
+    restart: always
+
+  frontend:
+    build:
+      context: https://github.com/RobinJ1995/sprint-retrospective.git
+      args:
+        API_ENDPOINT: 'http://localhost:5432'
+    image: robinj/sprintretrospective-frontend
+    ports:
+      - 5431:5431
+    restart: always
+
+volumes:
+  data-mongo:

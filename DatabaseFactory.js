@@ -6,7 +6,7 @@ module.exports = class DatabaseFactory {
             return MongoClient.connect(
                 `mongodb://${config.username}:${config.password}@${config.host}:${config.port}/${config.name}?authSource=admin`
             ).then(connection => {
-                console.log('Database connection established.');
+                console.log(`Database connection established (${config.host}:${config.port}).`);
 
                 this.connection = connection;
 
