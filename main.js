@@ -5,6 +5,7 @@ const BodyParser = require('body-parser');
 app.config = require.main.require('./config');
 
 app.use(require('./middleware/database'));
+app.use(require('./middleware/cors'));
 app.use(BodyParser.json());
 
 require('./handlers')(app);
