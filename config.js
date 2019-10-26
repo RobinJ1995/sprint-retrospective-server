@@ -9,15 +9,7 @@ const config = {
             password: 'root'
         }
     },
-    production:
-        {
-            port: 5432,
-            db: {
-                host: 'localhost',
-                port: 27017,
-                name: 'sprint-retrospective'
-            }
-        }
+    production: require('./config.production.json')
 };
 
 module.exports = (mode) => {
