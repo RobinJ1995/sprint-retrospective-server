@@ -30,7 +30,7 @@ module.exports = class DAO {
         '$set': {
             'title': title
         }
-    });
+    }, { upsert: true });
 
     setVoteMode = voteMode => this.db.collection(COLLECTION).update({
         id: this.id
@@ -38,7 +38,7 @@ module.exports = class DAO {
         '$set': {
             'voteMode': voteMode
         }
-    });
+    }, { upsert: true });
 
     addGood = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
