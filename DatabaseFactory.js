@@ -1,4 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
+const { EXIT_CODES } = require('./constants');
 
 module.exports = class DatabaseFactory {
     static getDatabase(config) {
@@ -11,6 +12,10 @@ module.exports = class DatabaseFactory {
                 this.connection = connection;
 
                 return this.connection.db(config.name);
+            }).catch(ex => {
+                console.error('Database connection failed.', ex);
+
+                process.exit(EXIT_CODES.DATABASE_CONNECTION_FAILED);
             });
         }
 
