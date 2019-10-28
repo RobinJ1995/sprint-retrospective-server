@@ -1,8 +1,7 @@
 const app = require('express')();
-const uuid = require('uuid/v4');
 const BodyParser = require('body-parser');
 
-app.config = require.main.require('./config');
+app.config = require('./config');
 
 app.use(require('./middleware/database'));
 app.use(require('./middleware/cors'));

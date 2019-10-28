@@ -1,6 +1,4 @@
-const MongoClient = require('mongodb').MongoClient;
 const uuid = require('uuid/v4');
-const DatabaseFactory = require('./DatabaseFactory');
 const { VOTE_MODES } = require('./constants');
 const DuplicateError = require('./error/DuplicateError');
 
