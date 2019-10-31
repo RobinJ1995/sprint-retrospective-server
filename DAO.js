@@ -60,7 +60,7 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
-    updateGoodText = (id, text) => this.db.collection(COLLECTION).findOne({
+    updateGood = (id, text) => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'good.text': text
     }).then(item => {
@@ -76,6 +76,16 @@ module.exports = class DAO {
                 'good.$.text': text
             }
         });
+    });
+
+    deleteGood = id => this.db.collection(COLLECTION).updateOne({
+          id: this.id
+    }, {
+        '$pull': {
+            'good': {
+                id
+            }
+        }
     });
 
     addBad = text => this.db.collection(COLLECTION).findOne({
@@ -100,7 +110,7 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
-    updateBadText = (id, text) => this.db.collection(COLLECTION).findOne({
+    updateBad = (id, text) => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'bad.text': text
     }).then(item => {
@@ -116,6 +126,16 @@ module.exports = class DAO {
                 'bad.$.text': text
             }
         });
+    });
+
+    deleteBad = id => this.db.collection(COLLECTION).updateOne({
+        id: this.id
+    }, {
+        '$pull': {
+            'bad': {
+                id
+            }
+        }
     });
 
     addAction = text => this.db.collection(COLLECTION).findOne({
@@ -140,7 +160,7 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
-    updateActionText = (id, text) => this.db.collection(COLLECTION).findOne({
+    updateAction = (id, text) => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'actions.text': text
     }).then(item => {
@@ -156,6 +176,16 @@ module.exports = class DAO {
                 'actions.$.text': text
             }
         });
+    });
+
+    deleteAction = id => this.db.collection(COLLECTION).updateOne({
+        id: this.id
+    }, {
+        '$pull': {
+            'actions': {
+                id
+            }
+        }
     });
 
     upvoteGood = id => this.db.collection(COLLECTION).update({

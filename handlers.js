@@ -37,7 +37,12 @@ module.exports = app => {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        new DAO(req.database, req.params.id).updateGoodText(req.params.good_id, req.body.text)
+        new DAO(req.database, req.params.id).updateGood(req.params.good_id, req.body.text)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
+    app.delete('/:id/good/:good_id', (req, res) => {
+        new DAO(req.database, req.params.id).deleteGood(req.params.good_id)
           .then(x => res.status(200).send(x))
           .catch(err => errorHandler(res, err));
     });
@@ -65,7 +70,12 @@ module.exports = app => {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        new DAO(req.database, req.params.id).updateBadText(req.params.bad_id, req.body.text)
+        new DAO(req.database, req.params.id).updateBad(req.params.bad_id, req.body.text)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
+    app.delete('/:id/bad/:bad_id', (req, res) => {
+        new DAO(req.database, req.params.id).deleteBad(req.params.bad_id)
           .then(x => res.status(200).send(x))
           .catch(err => errorHandler(res, err));
     });
@@ -93,7 +103,12 @@ module.exports = app => {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
 
-        new DAO(req.database, req.params.id).updateActionText(req.params.action_id, req.body.text)
+        new DAO(req.database, req.params.id).updateAction(req.params.action_id, req.body.text)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
+    app.delete('/:id/action/:action_id', (req, res) => {
+        new DAO(req.database, req.params.id).deleteAction(req.params.action_id)
           .then(x => res.status(200).send(x))
           .catch(err => errorHandler(res, err));
     });
