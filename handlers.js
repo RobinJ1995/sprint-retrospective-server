@@ -32,6 +32,15 @@ module.exports = app => {
           .then(x => res.status(201).send(x))
           .catch(err => errorHandler(res, err));
     });
+    app.patch('/:id/good/:good_id', (req, res) => {
+        validate(req.body, {
+            text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
+        });
+
+        new DAO(req.database, req.params.id).updateGoodText(req.params.good_id, req.body.text)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
     app.post('/:id/good/:good_id/up', (req, res) => {
         new DAO(req.database, req.params.id).upvoteGood(req.params.good_id)
           .then(x => res.status(201).send(x))
@@ -51,6 +60,15 @@ module.exports = app => {
           .then(x => res.status(201).send(x))
           .catch(err => errorHandler(res, err));
     });
+    app.patch('/:id/bad/:bad_id', (req, res) => {
+        validate(req.body, {
+            text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
+        });
+
+        new DAO(req.database, req.params.id).updateBadText(req.params.bad_id, req.body.text)
+          .then(x => res.status(200).send(x))
+          .catch(err => errorHandler(res, err));
+    });
     app.post('/:id/bad/:bad_id/up', (req, res) => {
         new DAO(req.database, req.params.id).upvoteBad(req.params.bad_id)
           .then(x => res.status(201).send(x))
@@ -68,6 +86,15 @@ module.exports = app => {
 
         new DAO(req.database, req.params.id).addAction(req.body.text)
           .then(x => res.status(201).send(x))
+          .catch(err => errorHandler(res, err));
+    });
+    app.patch('/:id/actions/:action_id', (req, res) => {
+        validate(req.body, {
+            text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
+        });
+
+        new DAO(req.database, req.params.id).updateActionText(req.params.action_id, req.body.text)
+          .then(x => res.status(200).send(x))
           .catch(err => errorHandler(res, err));
     });
     app.post('/:id/action/:action_id/up', (req, res) => {

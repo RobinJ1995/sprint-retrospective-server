@@ -60,6 +60,15 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
+    updateGoodText = (id, text) => this.db.collection(COLLECTION).updateOne({
+        id: this.id,
+        'good.id': id
+    }, {
+        '$set': {
+            'good.$.text': text
+        }
+    });
+
     addBad = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'bad.text': text
@@ -82,6 +91,15 @@ module.exports = class DAO {
         }, { upsert: true });
     });
 
+    updateBadText = (id, text) => this.db.collection(COLLECTION).updateOne({
+        id: this.id,
+        'bad.id': id
+    }, {
+        '$set': {
+            'bad.$.text': text
+        }
+    });
+
     addAction = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'actions.text': text
@@ -102,6 +120,15 @@ module.exports = class DAO {
                 }
             }
         }, { upsert: true });
+    });
+
+    updateActionText = (id, text) => this.db.collection(COLLECTION).updateOne({
+        id: this.id,
+        'actions.id': id
+    }, {
+        '$set': {
+            'actions.$.text': text
+        }
     });
 
     upvoteGood = id => this.db.collection(COLLECTION).update({
