@@ -98,7 +98,7 @@ module.exports = app => {
           .then(x => res.status(201).send(x))
           .catch(err => errorHandler(res, err));
     });
-    app.patch('/:id/actions/:action_id', (req, res) => {
+    app.patch('/:id/action/:action_id', (req, res) => {
         validate(req.body, {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
         });
