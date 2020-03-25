@@ -38,6 +38,14 @@ module.exports = class DAO {
         }
     }, { upsert: true });
 
+    setAccessKey = accessKey => this.db.collection(COLLECTION).update({
+        id: this.id
+    }, {
+        '$set': {
+            'accessKey': accessKey
+        }
+    }, { upsert: true });
+
     addGood = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
         'good.text': text

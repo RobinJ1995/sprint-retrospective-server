@@ -6,5 +6,8 @@ module.exports = class ValidationError extends Error {
     this.httpstatus = 400;
   }
 
-  getResponseBody = () => this.errors;
+  getResponseBody = () => ({
+    errors: this.errors,
+    message: this.errors.join('\n')
+  });
 };
