@@ -4,9 +4,9 @@ const { EXIT_CODES } = require('./constants');
 module.exports = class DatabaseFactory {
     static getDatabase(config) {
         if (this.connection == null) {
-            return MongoClient.connect(
-                `mongodb://${config.username}:${config.password}@${config.host}:${config.port}/${config.name}?authSource=admin`
-            ).then(connection => {
+        	const connectionString = config.connectionString ||
+	        	`mongodb://${config.username}:${config.password}@${config.host}:${config.port}/${config.name}?authSource=admin`;
+            return MongoClient.connect(connectionString).then(connection => {
                 console.log(`Database connection established (${config.host}:${config.port}).`);
 
                 this.connection = connection;
