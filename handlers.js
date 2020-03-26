@@ -135,7 +135,7 @@ module.exports = app => {
     });
     app.put('/:id/accessKey', AuthenticationMiddleware, (req, res) => {
         validate(req.body, {
-            accessKey: ['required', 'minlength:8']
+            accessKey: ['required', 'minlength:3']
         });
 
         new DAO(req.database, req.params.id).setAccessKey(req.body.accessKey)
