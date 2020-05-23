@@ -16,6 +16,20 @@ const validate = (input, rules) => {
 };
 
 module.exports = app => {
+    app.get('/health', (req, res) => {
+        const checks = {
+            'database': () => !!req.database
+        };
+
+        const results = Object.fromEntries(Object.entries(checks)
+            .map(([key, check]) => [key, check()]));
+        const allOk = Object.values(results)
+            .every(result => !!result);
+        
+        return res.status(allOk ? 200 : 503)
+            .send(results);
+    });
+
     app.post('/:id/good', AuthenticationMiddleware, (req, res) => {
         validate(req.body, {
             text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
