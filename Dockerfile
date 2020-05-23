@@ -1,8 +1,16 @@
-FROM node:13
+FROM node:14
+
+ENV NODE_ENV='production'
+
 WORKDIR /app
-COPY . .
+COPY package.json package-lock.json ./
 RUN npm install
+
+COPY . .
+
 ENV DB_HOST=${DB_HOST}
 ENV JWT_SECRET=${JWT_SECRET}
+
 EXPOSE 5432
-CMD ["node", "main.js"]
+
+CMD ["npm", "start"]
