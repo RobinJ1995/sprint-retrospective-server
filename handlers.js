@@ -125,7 +125,7 @@ module.exports = app => {
           .catch(err => errorHandler(res, err));
     });
     app.post('/:id/action/:action_id/down', AuthenticationMiddleware, (req, res) => {
-        new DAO(req.database, req.params.id).downvoteActions(req.params.action_id)
+        new DAO(req.database, req.params.id).downvoteAction(req.params.action_id)
           .then(x => res.status(201).send(x))
           .catch(err => errorHandler(res, err));
     });

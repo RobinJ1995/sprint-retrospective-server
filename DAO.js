@@ -1,6 +1,7 @@
 const uuid = require('uuid/v4');
 const { VOTE_MODES } = require('./constants');
 const DuplicateError = require('./error/DuplicateError');
+const messageQueue = require('./sqs/messageQueue');
 
 const COLLECTION = 'retro';
 
@@ -18,6 +19,17 @@ module.exports = class DAO {
         this.id = id;
     }
 
+    _broadcast = (action, item, value = null) => {
+    	const messageBody = {
+			retro: this.id,
+			action,
+			item,
+			value
+		};
+
+    	return messageQueue.send(messageBody);
+	}
+
     getRetro = () => this.db.collection(COLLECTION).findOne({
         id: this.id
     }).then(retro => ({ ...EMPTY_RETRO, ...retro }));
@@ -28,7 +40,8 @@ module.exports = class DAO {
         '$set': {
             'title': title
         }
-    }, { upsert: true });
+    }, { upsert: true }).then(
+    	() => this._broadcast('set_title', null, title));
 
     setVoteMode = voteMode => this.db.collection(COLLECTION).update({
         id: this.id
@@ -36,7 +49,8 @@ module.exports = class DAO {
         '$set': {
             'voteMode': voteMode
         }
-    }, { upsert: true });
+    }, { upsert: true }).then(
+		() => this._broadcast('set_vote_mode', null, voteMode));
 
     setAccessKey = accessKey => this.db.collection(COLLECTION).update({
         id: this.id
@@ -44,7 +58,8 @@ module.exports = class DAO {
         '$set': {
             'accessKey': accessKey
         }
-    }, { upsert: true });
+    }, { upsert: true }).then(
+		() => this._broadcast('set_access_key', null, null));
 
     addGood = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
@@ -54,18 +69,21 @@ module.exports = class DAO {
             throw new DuplicateError('text', text);
         }
 
+        const dbItem = {
+			id: uuid(),
+			text,
+			up: 0,
+			down: 0
+		};
+
         return this.db.collection(COLLECTION).update({
             id: this.id
         }, {
             '$push': {
-                'good': {
-                    id: uuid(),
-                    text,
-                    up: 0,
-                    down: 0
-                }
+                'good': dbItem
             }
-        }, { upsert: true });
+        }, { upsert: true }).then(
+			() => this._broadcast('add_good', dbItem.id, dbItem));
     });
 
     updateGood = (id, text) => this.db.collection(COLLECTION).findOne({
@@ -84,7 +102,8 @@ module.exports = class DAO {
                 'good.$.text': text
             }
         });
-    });
+    }).then(
+		() => this._broadcast('update_good', id, { id, text }));
 
     deleteGood = id => this.db.collection(COLLECTION).updateOne({
           id: this.id
@@ -94,7 +113,8 @@ module.exports = class DAO {
                 id
             }
         }
-    });
+    }).then(
+		() => this._broadcast('delete_good', id));
 
     addBad = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
@@ -103,6 +123,13 @@ module.exports = class DAO {
         if (item) {
             throw new DuplicateError('text', text);
         }
+
+		const dbItem = {
+			id: uuid(),
+			text,
+			up: 0,
+			down: 0
+		};
 
         return this.db.collection(COLLECTION).update({
             id: this.id
@@ -115,7 +142,8 @@ module.exports = class DAO {
                     down: 0
                 }
             }
-        }, { upsert: true });
+        }, { upsert: true }).then(
+			() => this._broadcast('add_bad', dbItem.id, dbItem));
     });
 
     updateBad = (id, text) => this.db.collection(COLLECTION).findOne({
@@ -134,7 +162,8 @@ module.exports = class DAO {
                 'bad.$.text': text
             }
         });
-    });
+    }).then(
+		() => this._broadcast('update_bad', id, { id, text }));
 
     deleteBad = id => this.db.collection(COLLECTION).updateOne({
         id: this.id
@@ -144,7 +173,8 @@ module.exports = class DAO {
                 id
             }
         }
-    });
+    }).then(
+		() => this._broadcast('delete_bad', id));
 
     addAction = text => this.db.collection(COLLECTION).findOne({
         id: this.id,
@@ -153,6 +183,13 @@ module.exports = class DAO {
         if (item) {
             throw new DuplicateError('text', text);
         }
+
+		const dbItem = {
+			id: uuid(),
+			text,
+			up: 0,
+			down: 0
+		};
 
         return this.db.collection(COLLECTION).update({
             id: this.id
@@ -165,7 +202,8 @@ module.exports = class DAO {
                     down: 0
                 }
             }
-        }, { upsert: true });
+        }, { upsert: true }).then(
+			() => this._broadcast('add_action', dbItem.id, dbItem));
     });
 
     updateAction = (id, text) => this.db.collection(COLLECTION).findOne({
@@ -184,7 +222,8 @@ module.exports = class DAO {
                 'actions.$.text': text
             }
         });
-    });
+    }).then(
+		() => this._broadcast('update_action', id, { id, text }));
 
     deleteAction = id => this.db.collection(COLLECTION).updateOne({
         id: this.id
@@ -194,7 +233,8 @@ module.exports = class DAO {
                 id
             }
         }
-    });
+    }).then(
+		() => this._broadcast('delete_action', id));
 
     upvoteGood = id => this.db.collection(COLLECTION).update({
         'good.id': id
@@ -202,7 +242,8 @@ module.exports = class DAO {
         '$inc': {
             'good.$.up': 1
         }
-    });
+    }).then(
+		() => this._broadcast('upvote_good', id));
 
     downvoteGood = id => this.db.collection(COLLECTION).update({
         'good.id': id
@@ -210,7 +251,8 @@ module.exports = class DAO {
         '$inc': {
             'good.$.down': 1
         }
-    });
+    }).then(
+		() => this._broadcast('downvote_good', id));
 
     upvoteBad = id => this.db.collection(COLLECTION).update({
         'bad.id': id
@@ -218,7 +260,8 @@ module.exports = class DAO {
         '$inc': {
             'bad.$.up': 1
         }
-    });
+    }).then(
+		() => this._broadcast('upvote_bad', id));
 
     downvoteBad = id => this.db.collection(COLLECTION).update({
         'bad.id': id
@@ -226,7 +269,8 @@ module.exports = class DAO {
         '$inc': {
             'bad.$.down': 1
         }
-    });
+    }).then(
+		() => this._broadcast('downvote_bad', id));
 
     upvoteAction = id => this.db.collection(COLLECTION).update({
         'actions.id': id
@@ -234,13 +278,15 @@ module.exports = class DAO {
         '$inc': {
             'actions.$.up': 1
         }
-    });
+    }).then(
+		() => this._broadcast('upvote_action', id));
 
-    downvoteActions = id => this.db.collection(COLLECTION).update({
+    downvoteAction = id => this.db.collection(COLLECTION).update({
         'actions.id': id
     }, {
         '$inc': {
             'actions.$.down': 1
         }
-    });
+    }).then(
+		() => this._broadcast('downvote_action', id));
 };

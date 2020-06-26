@@ -12,5 +12,11 @@ module.exports = config = {
     },
     jwt: {
         secret: process.env.JWT_SECRET || Uuid()
+    },
+    sqs: {
+        queue: process.env.SQS_QUEUE_NAME,
+        endpoint: process.env.SQS_ENDPOINT,
+        access_key_id: process.env.SQS_ACCESS_KEY_ID || '*',
+        secret_access_key: process.env.SQS_SECRET_ACCESS_KEY || '*'
     }
 };
