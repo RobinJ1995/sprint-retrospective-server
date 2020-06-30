@@ -18,6 +18,7 @@ module.exports = class Messenger {
 
 	send = message => new Promise((resolve, reject) => {
 		try {
+			console.log(`<<<<< ${JSON.stringify(message)}`);
 			this.sqsClient.push(this.queue, message, resolve);
 		} catch (ex) {
 			return reject(ex);
@@ -27,11 +28,11 @@ module.exports = class Messenger {
 	onReceive = callback => this.sqsClient.pull(this.queue,
 		(message, acknowledge) => {
 			const strMessage = JSON.stringify(message);
-			console.log(`Received SQS message: ${strMessage}`);
+			console.log(`>>>>> ${strMessage}`);
 
 			return Promise.resolve(callback(message))
 				.then(() => acknowledge())
-				.then(() => console.log(`Acknowledged SQS message: ${strMessage}`))
+				.then(() => console.log(`>ACK> ${strMessage}`))
 				.catch(console.error);
 		});
 }

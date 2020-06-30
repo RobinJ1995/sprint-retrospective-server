@@ -13,9 +13,18 @@ services:
             - data-mongo:/var/lib/mongodb
         restart: always
 
+    redis:
+        image: 'redis'
+        container_name: 'redis'
+        restart: always
+        ports:
+            - "6379:6379"
+
     message-queue:
         image: 'softwaremill/elasticmq'
         container_name: 'message-queue'
+        ports:
+            - "9324:9324"
         restart: always
 
     api:
@@ -27,6 +36,10 @@ services:
             DB_HOST: 'mongo'
             SQS_QUEUE_NAME: 'events'
             SQS_ENDPOINT: 'message-queue:9324'
+        depends_on:
+            - database
+            - redis
+            - message-queue
         restart: always
 
     frontend:
@@ -36,7 +49,7 @@ services:
                 API_ENDPOINT: 'http://localhost:5432'
         image: robinj/sprintretrospective-frontend
         ports:
-            - 5431:5431
+            - 5431:80
         restart: always
 
 volumes:

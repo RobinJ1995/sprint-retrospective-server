@@ -1,4 +1,5 @@
 const Validator = require('input-field-validator');
+const Promise = require('bluebird');
 const DAO = require('./DAO');
 const { TITLE_MAX_LENGTH, TEXT_MAX_LENGTH, VOTE_MODES } = require('./constants');
 const ValidationError = require('./error/ValidationError');
@@ -25,7 +26,7 @@ module.exports = app => {
             .map(([key, check]) => [key, check()]));
         const allOk = Object.values(results)
             .every(result => !!result);
-        
+
         return res.status(allOk ? 200 : 503)
             .send(results);
     });
@@ -166,13 +167,28 @@ module.exports = app => {
           .then(token => res.status(200).send({ token }))
           .catch(err => errorHandler(res, err));
     });
-    app.get('/:id/', AuthenticationMiddleware, (req, res) => {
-        new DAO(req.database, req.params.id).getRetro()
-          .then(retro => ({
-              ...retro,
-              accessKey: null // Don't reveal the access key.
-          }))
-          .then(retro => res.status(200).send(retro))
-          .catch(err => errorHandler(res, err));
-    });
+	app.get('/:id/', AuthenticationMiddleware, (req, res) => {
+		new DAO(req.database, req.params.id).getRetro()
+			.then(retro => Promise.all([
+				retro,
+				req.redis.setAsync(
+					req.authentication_token.id,
+					JSON.stringify({ retro: req.params.id }),
+					'PX', req.authentication_token.expires)
+					.then(() => req.authentication_token.id)
+					.catch(err => {
+						console.error(err);
+						return false;
+					})
+			]))
+			.then(([ retro, websocketToken ]) => ({
+				...retro,
+				accessKey: null, // Don't reveal the access key.
+				socket: websocketToken ?
+					`${app.config.websocket.public_base_url}${websocketToken}` :
+					null
+			}))
+			.then(retro => res.status(200).send(retro))
+			.catch(err => errorHandler(res, err));
+	});
 };

@@ -18,6 +18,7 @@ module.exports = (req, res, next) => {
           }
 
           req.authentication_token = data;
+
           next();
       })
       .catch(err => errorHandler(res, err));
