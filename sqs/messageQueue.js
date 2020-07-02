@@ -1,3 +1,5 @@
-const Messenger = require('./Messenger');
+const MessagePublisher = require('./MessagePublisher');
 
-module.exports = new Messenger(require('../config').sqs);
+const config = require('../config').mq;
+
+module.exports = new MessagePublisher(config.url, config.queue);

@@ -18,11 +18,9 @@ module.exports = config = {
 			insecure: ms(process.env.JWT_TTL_INSECURE || process.env.JWT_TTL || '2 minutes'),
 		}
     },
-    sqs: {
-        queue: process.env.SQS_QUEUE_NAME,
-        endpoint: process.env.SQS_ENDPOINT,
-        access_key_id: process.env.SQS_ACCESS_KEY_ID || '*',
-        secret_access_key: process.env.SQS_SECRET_ACCESS_KEY || '*'
+    mq: {
+        url: process.env.MQ_CONNECTION_URL,
+        queue: process.env.MQ_QUEUE_NAME
     },
 	redis: {
     	url: process.env.REDIS_URL || 'redis://localhost'

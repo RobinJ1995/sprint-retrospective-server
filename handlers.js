@@ -6,6 +6,7 @@ const ValidationError = require('./error/ValidationError');
 const errorHandler = require('./error_handler');
 const AuthenticationMiddleware = require('./middleware/authentication');
 const Authenticator = require('./Authenticator');
+const HealthCheck = require('./HealthCheck');
 
 const validate = (input, rules) => {
     const validator = new Validator(input, rules);
@@ -17,19 +18,15 @@ const validate = (input, rules) => {
 };
 
 module.exports = app => {
-    app.get('/health', (req, res) => {
-        const checks = {
-            'database': () => !!req.database
-        };
+    app.get('/health', (req, res) =>
+		new HealthCheck(req).run()
+			.then(results => {
+				const allOk = Object.values(results)
+					.every(result => !!result);
 
-        const results = Object.fromEntries(Object.entries(checks)
-            .map(([key, check]) => [key, check()]));
-        const allOk = Object.values(results)
-            .every(result => !!result);
-
-        return res.status(allOk ? 200 : 503)
-            .send(results);
-    });
+				return res.status(allOk ? 200 : 503)
+					.send(results);
+			}));
 
     app.post('/:id/good', AuthenticationMiddleware, (req, res) => {
         validate(req.body, {
@@ -183,7 +180,7 @@ module.exports = app => {
 			]))
 			.then(([ retro, websocketToken ]) => ({
 				...retro,
-				accessKey: null, // Don't reveal the access key.
+				accessKey: undefined, // Don't reveal the access key.
 				socket: websocketToken ?
 					`${app.config.websocket.public_base_url}${websocketToken}` :
 					null

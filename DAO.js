@@ -27,7 +27,8 @@ module.exports = class DAO {
 			value
 		};
 
-    	return messageQueue.send(messageBody);
+    	return messageQueue.send(messageBody)
+			.catch(() => {});
 	}
 
     getRetro = () => this.db.collection(COLLECTION).findOne({
