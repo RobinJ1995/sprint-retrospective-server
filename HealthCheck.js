@@ -1,4 +1,5 @@
-const messageQueue = require('./sqs/messageQueue');
+const redis = require('./redis');
+const messagePublisher = require('./message_publisher');
 
 module.exports = class HealthCheck {
 	constructor(req) {
@@ -21,7 +22,7 @@ module.exports = class HealthCheck {
 			return false;
 		});
 
-	_redis = () => this.req.redis.infoAsync()
+	_redis = () => redis.infoAsync()
 		.then(x => x.includes('redis_version'))
 		.catch(err => {
 			console.log('Redis health check failed.', err);
@@ -29,7 +30,7 @@ module.exports = class HealthCheck {
 			return false;
 		});
 
-	_message_queue = () => messageQueue.send('HEALTH')
+	_message_queue = () => messagePublisher.send('HEALTH')
 		.then(() => true)
 		.catch(err => {
 			console.log('Message queue health check failed.', err);

@@ -1,7 +1,7 @@
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const { VOTE_MODES } = require('./constants');
 const DuplicateError = require('./error/DuplicateError');
-const messageQueue = require('./sqs/messageQueue');
+const messagePublisher = require('./message_publisher');
 
 const COLLECTION = 'retro';
 
@@ -27,7 +27,7 @@ module.exports = class DAO {
 			value
 		};
 
-    	return messageQueue.send(messageBody)
+    	return messagePublisher.send(messageBody)
 			.catch(() => {});
 	}
 

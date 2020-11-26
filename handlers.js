@@ -7,6 +7,7 @@ const errorHandler = require('./error_handler');
 const AuthenticationMiddleware = require('./middleware/authentication');
 const Authenticator = require('./Authenticator');
 const HealthCheck = require('./HealthCheck');
+const redis = require('./redis');
 
 const validate = (input, rules) => {
     const validator = new Validator(input, rules);
@@ -168,7 +169,7 @@ module.exports = app => {
 		new DAO(req.database, req.params.id).getRetro()
 			.then(retro => Promise.all([
 				retro,
-				req.redis.setAsync(
+				redis.setAsync(
 					req.authentication_token.id,
 					JSON.stringify({ retro: req.params.id }),
 					'PX', req.authentication_token.expires)

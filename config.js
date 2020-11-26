@@ -1,4 +1,4 @@
-const Uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const ms = require('ms');
 
 module.exports = config = {
@@ -12,18 +12,17 @@ module.exports = config = {
         connectionString: process.env.DB_CONNECTION_STRING
     },
     jwt: {
-        secret: process.env.JWT_SECRET || Uuid(),
+        secret: process.env.JWT_SECRET || uuid(),
 		ttl: {
 			secure: ms(process.env.JWT_TTL_SECURE || process.env.JWT_TTL || '20 days'),
 			insecure: ms(process.env.JWT_TTL_INSECURE || process.env.JWT_TTL || '2 minutes'),
 		}
     },
-    mq: {
-        url: process.env.MQ_CONNECTION_URL,
-        queue: process.env.MQ_QUEUE_NAME
-    },
 	redis: {
-    	url: process.env.REDIS_URL || 'redis://localhost'
+    	url: process.env.REDIS_URL || 'redis://localhost',
+		pubsub: {
+    		topic: process.env.REDIS_PUBSUB_TOPIC || 'updates'
+		}
 	},
 	websocket: {
     	public_base_url: process.env.WEBSOCKET_PUBLIC_BASE_URL || 'ws://localhost:5433/'
