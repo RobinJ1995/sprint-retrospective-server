@@ -1,13 +1,13 @@
 module.exports = class ValidationError extends Error {
-  constructor(errors) {
-    super();
+	constructor(errors) {
+		super();
 
-    this.errors = errors;
-    this.httpstatus = 400;
-  }
+		this.errors = errors;
+		this.httpstatus = 400;
+	}
 
-  getResponseBody = () => ({
-    errors: this.errors,
-    message: this.errors.join('\n')
-  });
+	getResponseBody = () => ({
+		errors: this.errors,
+		message: this.errors.join('\n')
+	});
 };

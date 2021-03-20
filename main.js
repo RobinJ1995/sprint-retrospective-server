@@ -3,7 +3,6 @@ const BodyParser = require('body-parser');
 
 app.config = require('./config');
 
-app.use(require('./middleware/database'));
 app.use(require('./middleware/cors'));
 app.use(require('./middleware/log'));
 app.use(BodyParser.json());

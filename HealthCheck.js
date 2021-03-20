@@ -1,5 +1,6 @@
 const redis = require('./redis');
 const messagePublisher = require('./message_publisher');
+const database = require('./database');
 
 module.exports = class HealthCheck {
 	constructor(req) {
@@ -10,12 +11,12 @@ module.exports = class HealthCheck {
 		this._database(),
 		this._redis(),
 		this._message_queue()
-	]).then(([ database, redis, message_queue ]) => ({
+	]).then(([database, redis, message_queue]) => ({
 		database, redis, message_queue
 	}));
 
-	_database = () => this.req.database.stats()
-		.then(({ ok }) => !!ok)
+	_database = () => database().then(db => db.stats())
+		.then(({ok}) => !!ok)
 		.catch(err => {
 			console.log('Database health check failed.', err);
 
