@@ -30,13 +30,14 @@ module.exports = class RetrospectiveDao {
 		};
 
 		return messagePublisher.send(messageBody)
-			.catch(() => {
-			});
+			.catch(() => {});
 	}
 
-	getRetro = () => collection().then(c => c.findOne({
+	_getRetroRaw = () => collection().then(c => c.findOne({
 		id: this.id
-	})).then(retro => ({...EMPTY_RETRO, ...retro}));
+	}));
+
+	getRetro = () => this._getRetroRaw().then(retro => ({...EMPTY_RETRO, ...retro}));
 
 	setTitle = title => collection().then(c => c.update({
 		id: this.id
@@ -293,4 +294,49 @@ module.exports = class RetrospectiveDao {
 		}
 	})).then(
 		() => this._broadcast(ACTIONS.DOWNVOTE_ACTION, id));
+
+	addComment = (section, itemId, commentText) => {
+		const commentId = uuid();
+
+		return collection().then(c => c.update({
+			id: this.id,
+			[`${section}.id`]: itemId
+		}, {
+			'$push': {
+				[`${section}.$.comments`]: {
+					id: commentId,
+					text: commentText
+				}
+			}
+		})).then(
+			() => this._broadcast(ACTIONS.ADD_COMMENT, commentId, { id: commentId, text: commentText }));
+	}
+
+	updateComment = (section, commentId, commentText) => collection().then(c => c.updateOne({
+		id: this.id,
+		[`${section}.comments.id`]: commentId
+	}, {
+		'$set': {
+			[`${section}.$.comments.$[comment].text`]: commentText
+		}
+	}, {
+		arrayFilters: [
+			{
+				'comment.id': commentId
+			}
+		]
+	})).then(
+		() => this._broadcast(ACTIONS.UPDATE_COMMENT, commentId, { id: commentId, text: commentText }));
+
+	deleteComment = (section, commentId) => collection().then(c => c.updateOne({
+		id: this.id,
+		[`${section}.comments.id`]: commentId
+	}, {
+		'$pull': {
+			[`${section}.$.comments`]: {
+				id: commentId
+			}
+		}
+	})).then(
+		() => this._broadcast(ACTIONS.DELETE_COMMENT, commentId));
 };

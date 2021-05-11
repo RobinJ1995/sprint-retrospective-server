@@ -8,6 +8,11 @@ const VOTE_MODES = Object.freeze({
 const EXIT_CODES = Object.freeze({
 	DATABASE_CONNECTION_FAILED: 3
 });
+const SECTIONS = Object.freeze({
+	GOOD: 'good',
+	BAD: 'bad',
+	ACTION: 'action'
+});
 const ACTIONS = Object.freeze({
 	SET_TITLE: 'set_title',
 	SET_VOTE_MODE: 'set_vote_mode',
@@ -18,7 +23,6 @@ const ACTIONS = Object.freeze({
 	DELETE_GOOD: 'delete_good',
 	UPVOTE_GOOD: 'upvote_good',
 	DOWNVOTE_GOOD: 'downvote_good',
-	
 	
 	ADD_BAD: 'add_bad',
 	UPDATE_BAD: 'update_bad',
@@ -31,6 +35,10 @@ const ACTIONS = Object.freeze({
 	DELETE_ACTION: 'delete_action',
 	UPVOTE_ACTION: 'upvote_action',
 	DOWNVOTE_ACTION: 'downvote_action',
+
+	ADD_COMMENT: 'add_comment',
+	UPDATE_COMMENT: 'update_comment',
+	DELETE_COMMENT: 'delete_comment'
 })
 
 module.exports = {
@@ -38,5 +46,6 @@ module.exports = {
 	TITLE_MAX_LENGTH,
 	VOTE_MODES,
 	EXIT_CODES,
+	SECTIONS,
 	ACTIONS
 };

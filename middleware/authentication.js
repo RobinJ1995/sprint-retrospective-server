@@ -2,11 +2,11 @@ const Authenticator = require('../Authenticator');
 const AuthenticationRequired = require('../error/AuthenticationRequired');
 const InvalidAccessKey = require('../error/InvalidAccessKey');
 const errorHandler = require('../error_handler');
-
-const database = require('../database');
+const config = require('../config');
 
 module.exports = (req, res, next) => {
 	const token = req.get('x-token');
+	const adminKey = req.get('x-admin-key');
 
 	if (!token) {
 		return res.status(401).send(new AuthenticationRequired().getResponseBody());
@@ -20,6 +20,10 @@ module.exports = (req, res, next) => {
 			}
 
 			req.authentication_token = data;
+
+			if (adminKey === config.admin_key) {
+				req.admin = true;
+			}
 
 			next();
 		})

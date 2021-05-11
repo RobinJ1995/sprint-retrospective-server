@@ -11,12 +11,16 @@ services:
         volumes:
             - data-mongo:/var/lib/mongodb
         restart: always
+        stop_grace_period: 0s
 
     redis:
-        image: 'redis'
+        image: 'redis:6.2.3'
         restart: always
+        volumes:
+            - data-redis:/data
         ports:
             - "6379"
+        stop_grace_period: 0s
 
     api:
         # build: https://github.com/RobinJ1995/sprint-retrospective-server.git
@@ -30,6 +34,8 @@ services:
             REDIS_PUBSUB_TOPIC: 'updates'
             WEBSOCKET_PUBLIC_BASE_URL: 'ws://localhost:5433/'
             PORT: 5432
+            ADMIN_KEY: 'c74c12d6-7842-4fee-b476-47f4cf3f6526'
+        stop_grace_period: 0s
         depends_on:
             - database
             - redis
@@ -46,6 +52,7 @@ services:
             REDIS_URL: 'redis://redis'
             REDIS_PUBSUB_TOPIC: 'updates'
             PORT: 5433
+        stop_grace_period: 0s
         depends_on:
             - redis
         restart: always
@@ -64,3 +71,4 @@ services:
 
 volumes:
     data-mongo:
+    data-redis:

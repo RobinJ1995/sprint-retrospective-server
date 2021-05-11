@@ -2,10 +2,11 @@ const Validator = require('input-field-validator');
 const Promise = require('bluebird');
 const RetrospectiveDao = require('./dao/RetrospectiveDao');
 const ActionDao = require('./dao/ActionDao');
-const { TITLE_MAX_LENGTH, TEXT_MAX_LENGTH, VOTE_MODES, ACTIONS } = require('./constants');
+const { TITLE_MAX_LENGTH, TEXT_MAX_LENGTH, VOTE_MODES, ACTIONS, SECTIONS } = require('./constants');
 const ValidationError = require('./error/ValidationError');
 const errorHandler = require('./error_handler');
 const AuthenticationMiddleware = require('./middleware/authentication');
+const AdminRequiredMiddleware = require('./middleware/admin_required');
 const Authenticator = require('./Authenticator');
 const HealthCheck = require('./HealthCheck');
 const redis = require('./redis');
@@ -90,6 +91,48 @@ module.exports = app => {
 			.then(actionId => res.status(201).send({actionId}))
 			.catch(err => errorHandler(res, err));
 	});
+
+	Object.values(SECTIONS).forEach(section => {
+		app.post(`/:id/${section}/:item_id/comment`, AuthenticationMiddleware, (req, res) => {
+			validate(req.body, {
+				text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
+			});
+
+			new RetrospectiveDao(req.params.id).addComment(section, req.params.item_id, req.body.text)
+				.then(() => actionDao.add({
+					retroId: req.params.id,
+					itemId: req.params.item_id,
+					action: ACTIONS.ADD_COMMENT
+				}))
+				.then(actionId => res.status(201).send({actionId}))
+				.catch(err => errorHandler(res, err));
+		});
+		app.patch(`/:id/${section}/:item_id/comment/:comment_id`, AuthenticationMiddleware, (req, res) => {
+			validate(req.body, {
+				text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
+			});
+
+			new RetrospectiveDao(req.params.id).updateComment(section, req.params.comment_id, req.body.text)
+				.then(x => res.status(x ? 200 : 204).send(x))
+				.then(() => actionDao.add({
+					retroId: req.params.id,
+					itemId: req.params.item_id,
+					action: ACTIONS.UPDATE_COMMENT
+				}))
+				.catch(err => errorHandler(res, err));
+		});
+		app.delete(`/:id/${section}/:item_id/comment/:comment_id`, AuthenticationMiddleware, (req, res) => {
+			new RetrospectiveDao(req.params.id).deleteComment(section, req.params.comment_id)
+				.then(() => res.status(204).send())
+				.then(() => actionDao.add({
+					retroId: req.params.id,
+					itemId: req.params.item_id,
+					action: ACTIONS.DELETE_COMMENT
+				}))
+				.catch(err => errorHandler(res, err));
+		});
+	});
+
 	app.post('/:id/bad', AuthenticationMiddleware, (req, res) => {
 		validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
@@ -273,12 +316,17 @@ module.exports = app => {
 			.then(retro => res.status(200).send(retro))
 			.catch(err => errorHandler(res, err));
 	});
-	
-	app.get('/:id/_actions', AuthenticationMiddleware,
+
+	app.get('/:id/_actions', AuthenticationMiddleware, AdminRequiredMiddleware,
 		(req, res) => actionDao.getForRetro(req.params.id)
 			.then(actions => actions.map(({ retroId, itemId, action, timestamp }) => ({
 				retroId, itemId, action, timestamp
 			})))
+			.then(r => res.status(200).send(r))
+			.catch(err => errorHandler(res, err)));
+
+	app.get('/:id/_raw', AuthenticationMiddleware, AdminRequiredMiddleware,
+		(req, res) => new RetrospectiveDao(req.params.id)._getRetroRaw()
 			.then(r => res.status(200).send(r))
 			.catch(err => errorHandler(res, err)));
 };

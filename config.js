@@ -26,5 +26,6 @@ module.exports = config = {
 	},
 	websocket: {
 		public_base_url: process.env.WEBSOCKET_PUBLIC_BASE_URL || 'ws://localhost:5433/'
-	}
+	},
+	admin_key: process.env.ADMIN_KEY || uuid()
 };
