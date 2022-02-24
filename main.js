@@ -1,3 +1,4 @@
+require('console-stamp')(console);
 const app = require('express')();
 const BodyParser = require('body-parser');
 
