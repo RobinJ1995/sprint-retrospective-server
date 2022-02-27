@@ -1,5 +1,5 @@
 const {v4: uuid} = require('uuid');
-const {VOTE_MODES, ACTIONS} = require('../constants');
+const {VOTE_MODES, ACTIONS, SECTION_COLLECTION_MAP} = require('../constants');
 const DuplicateError = require('../error/DuplicateError');
 const messagePublisher = require('../message_publisher');
 const database = require('../database');
@@ -300,10 +300,10 @@ module.exports = class RetrospectiveDao {
 
 		return collection().then(c => c.update({
 			id: this.id,
-			[`${section}.id`]: itemId
+			[`${SECTION_COLLECTION_MAP[section]}.id`]: itemId
 		}, {
 			'$push': {
-				[`${section}.$.comments`]: {
+				[`${SECTION_COLLECTION_MAP[section]}.$.comments`]: {
 					id: commentId,
 					text: commentText
 				}
@@ -314,10 +314,10 @@ module.exports = class RetrospectiveDao {
 
 	updateComment = (section, commentId, commentText) => collection().then(c => c.updateOne({
 		id: this.id,
-		[`${section}.comments.id`]: commentId
+		[`${SECTION_COLLECTION_MAP[section]}.comments.id`]: commentId
 	}, {
 		'$set': {
-			[`${section}.$.comments.$[comment].text`]: commentText
+			[`${SECTION_COLLECTION_MAP[section]}.$.comments.$[comment].text`]: commentText
 		}
 	}, {
 		arrayFilters: [
@@ -330,10 +330,10 @@ module.exports = class RetrospectiveDao {
 
 	deleteComment = (section, commentId) => collection().then(c => c.updateOne({
 		id: this.id,
-		[`${section}.comments.id`]: commentId
+		[`${SECTION_COLLECTION_MAP[section]}.comments.id`]: commentId
 	}, {
 		'$pull': {
-			[`${section}.$.comments`]: {
+			[`${SECTION_COLLECTION_MAP[section]}.$.comments`]: {
 				id: commentId
 			}
 		}

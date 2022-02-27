@@ -13,6 +13,11 @@ const SECTIONS = Object.freeze({
 	BAD: 'bad',
 	ACTION: 'action'
 });
+const SECTION_COLLECTION_MAP = Object.freeze({
+	'good': 'good',
+	'bad': 'bad',
+	'action': 'actions'
+});
 const ACTIONS = Object.freeze({
 	SET_TITLE: 'set_title',
 	SET_VOTE_MODE: 'set_vote_mode',
@@ -47,5 +52,6 @@ module.exports = {
 	VOTE_MODES,
 	EXIT_CODES,
 	SECTIONS,
-	ACTIONS
+	ACTIONS,
+	SECTION_COLLECTION_MAP
 };
