@@ -35,6 +35,7 @@ services:
             WEBSOCKET_PUBLIC_BASE_URL: 'ws://localhost:5433/'
             PORT: 5432
             ADMIN_KEY: 'c74c12d6-7842-4fee-b476-47f4cf3f6526'
+            SUPPRESS_HEALTHCHECK_LOGGING: 'false'
         stop_grace_period: 0s
         depends_on:
             - database
@@ -52,6 +53,7 @@ services:
             REDIS_URL: 'redis://redis'
             REDIS_PUBSUB_TOPIC: 'updates'
             PORT: 5433
+            SUPPRESS_HEALTHCHECK_LOGGING: 'false'
         stop_grace_period: 0s
         depends_on:
             - redis

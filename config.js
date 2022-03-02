@@ -27,5 +27,6 @@ module.exports = config = {
 	websocket: {
 		public_base_url: process.env.WEBSOCKET_PUBLIC_BASE_URL || 'ws://localhost:5433/'
 	},
-	admin_key: process.env.ADMIN_KEY || uuid()
+	admin_key: process.env.ADMIN_KEY || uuid(),
+	suppress_healthcheck_logging: (process.env.SUPPRESS_HEALTHCHECK_LOGGING || 'false').toLowerCase() === 'true'
 };
