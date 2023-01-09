@@ -11,7 +11,8 @@ const EMPTY_RETRO = {
 	voteMode: VOTE_MODES.UPVOTE,
 	good: [],
 	bad: [],
-	actions: []
+	actions: [],
+	lastUpdate: null
 };
 
 const collection = () => database().then(db => db.collection(COLLECTION));
@@ -46,7 +47,8 @@ module.exports = class RetrospectiveDao {
 			'title': title
 		}
 	}, {upsert: true})).then(
-		() => this._broadcast(ACTIONS.SET_TITLE, null, title));
+		() => this._broadcast(ACTIONS.SET_TITLE, null, title))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	setVoteMode = voteMode => collection().then(c => c.update({
 		id: this.id
@@ -55,7 +57,8 @@ module.exports = class RetrospectiveDao {
 			'voteMode': voteMode
 		}
 	}, {upsert: true})).then(
-		() => this._broadcast(ACTIONS.SET_VOTE_MODE, null, voteMode));
+		() => this._broadcast(ACTIONS.SET_VOTE_MODE, null, voteMode))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	setAccessKey = accessKey => collection().then(c => c.update({
 		id: this.id
@@ -64,7 +67,8 @@ module.exports = class RetrospectiveDao {
 			'accessKey': accessKey
 		}
 	}, {upsert: true})).then(
-		() => this._broadcast(ACTIONS.SET_ACCESS_KEY, null, null));
+		() => this._broadcast(ACTIONS.SET_ACCESS_KEY, null, null))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	addGood = text => collection().then(c => c.findOne({
 		id: this.id,
@@ -88,7 +92,8 @@ module.exports = class RetrospectiveDao {
 				'good': dbItem
 			}
 		}, {upsert: true})).then(
-			() => this._broadcast(ACTIONS.ADD_GOOD, dbItem.id, dbItem));
+			() => this._broadcast(ACTIONS.ADD_GOOD, dbItem.id, dbItem))
+			.then(() => this._updateRetroLastUpdateTimestamp());
 	});
 
 	updateGood = (id, text) => collection().then(c => c.findOne({
@@ -108,7 +113,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}));
 	}).then(
-		() => this._broadcast(ACTIONS.UPDATE_GOOD, id, {id, text}));
+		() => this._broadcast(ACTIONS.UPDATE_GOOD, id, {id, text}))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	deleteGood = id => collection().then(c => c.updateOne({
 		id: this.id
@@ -119,7 +125,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DELETE_GOOD, id));
+		() => this._broadcast(ACTIONS.DELETE_GOOD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	addBad = text => collection().then(c => c.findOne({
 		id: this.id,
@@ -148,7 +155,8 @@ module.exports = class RetrospectiveDao {
 				}
 			}
 		}, {upsert: true})).then(
-			() => this._broadcast(ACTIONS.ADD_BAD, dbItem.id, dbItem));
+			() => this._broadcast(ACTIONS.ADD_BAD, dbItem.id, dbItem))
+			.then(() => this._updateRetroLastUpdateTimestamp());
 	});
 
 	updateBad = (id, text) => collection().then(c => c.findOne({
@@ -168,7 +176,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}));
 	}).then(
-		() => this._broadcast(ACTIONS.UPDATE_BAD, id, {id, text}));
+		() => this._broadcast(ACTIONS.UPDATE_BAD, id, {id, text}))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	deleteBad = id => collection().then(c => c.updateOne({
 		id: this.id
@@ -179,7 +188,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DELETE_BAD, id));
+		() => this._broadcast(ACTIONS.DELETE_BAD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	addAction = text => collection().then(c => c.findOne({
 		id: this.id,
@@ -208,7 +218,8 @@ module.exports = class RetrospectiveDao {
 				}
 			}
 		}, {upsert: true})).then(
-			() => this._broadcast(ACTIONS.ADD_ACTION, dbItem.id, dbItem));
+			() => this._broadcast(ACTIONS.ADD_ACTION, dbItem.id, dbItem))
+			.then(() => this._updateRetroLastUpdateTimestamp());
 	});
 
 	updateAction = (id, text) => collection().then(c => c.findOne({
@@ -228,7 +239,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}));
 	}).then(
-		() => this._broadcast(ACTIONS.UPDATE_ACTION, id, {id, text}));
+		() => this._broadcast(ACTIONS.UPDATE_ACTION, id, {id, text}))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	deleteAction = id => collection().then(c => c.updateOne({
 		id: this.id
@@ -239,7 +251,8 @@ module.exports = class RetrospectiveDao {
 			}
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DELETE_ACTION, id));
+		() => this._broadcast(ACTIONS.DELETE_ACTION, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	upvoteGood = id => collection().then(c => c.update({
 		'good.id': id
@@ -248,7 +261,8 @@ module.exports = class RetrospectiveDao {
 			'good.$.up': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.UPVOTE_GOOD, id));
+		() => this._broadcast(ACTIONS.UPVOTE_GOOD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	downvoteGood = id => collection().then(c => c.update({
 		'good.id': id
@@ -257,7 +271,8 @@ module.exports = class RetrospectiveDao {
 			'good.$.down': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DOWNVOTE_GOOD, id));
+		() => this._broadcast(ACTIONS.DOWNVOTE_GOOD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	upvoteBad = id => collection().then(c => c.update({
 		'bad.id': id
@@ -266,7 +281,8 @@ module.exports = class RetrospectiveDao {
 			'bad.$.up': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.UPVOTE_BAD, id));
+		() => this._broadcast(ACTIONS.UPVOTE_BAD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	downvoteBad = id => collection().then(c => c.update({
 		'bad.id': id
@@ -275,7 +291,8 @@ module.exports = class RetrospectiveDao {
 			'bad.$.down': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DOWNVOTE_BAD, id));
+		() => this._broadcast(ACTIONS.DOWNVOTE_BAD, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	upvoteAction = id => collection().then(c => c.update({
 		'actions.id': id
@@ -284,7 +301,8 @@ module.exports = class RetrospectiveDao {
 			'actions.$.up': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.UPVOTE_ACTION, id));
+		() => this._broadcast(ACTIONS.UPVOTE_ACTION, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	downvoteAction = id => collection().then(c => c.update({
 		'actions.id': id
@@ -293,7 +311,8 @@ module.exports = class RetrospectiveDao {
 			'actions.$.down': 1
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DOWNVOTE_ACTION, id));
+		() => this._broadcast(ACTIONS.DOWNVOTE_ACTION, id))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	addComment = (section, itemId, commentText) => {
 		const commentId = uuid();
@@ -309,7 +328,8 @@ module.exports = class RetrospectiveDao {
 				}
 			}
 		})).then(
-			() => this._broadcast(ACTIONS.ADD_COMMENT, commentId, { id: commentId, text: commentText }));
+			() => this._broadcast(ACTIONS.ADD_COMMENT, commentId, { id: commentId, text: commentText }))
+			.then(() => this._updateRetroLastUpdateTimestamp());
 	}
 
 	updateComment = (section, commentId, commentText) => collection().then(c => c.updateOne({
@@ -326,7 +346,8 @@ module.exports = class RetrospectiveDao {
 			}
 		]
 	})).then(
-		() => this._broadcast(ACTIONS.UPDATE_COMMENT, commentId, { id: commentId, text: commentText }));
+		() => this._broadcast(ACTIONS.UPDATE_COMMENT, commentId, { id: commentId, text: commentText }))
+		.then(() => this._updateRetroLastUpdateTimestamp());
 
 	deleteComment = (section, commentId) => collection().then(c => c.updateOne({
 		id: this.id,
@@ -338,5 +359,14 @@ module.exports = class RetrospectiveDao {
 			}
 		}
 	})).then(
-		() => this._broadcast(ACTIONS.DELETE_COMMENT, commentId));
+		() => this._broadcast(ACTIONS.DELETE_COMMENT, commentId))
+		.then(() => this._updateRetroLastUpdateTimestamp());
+
+	_updateRetroLastUpdateTimestamp = () => collection().then(c => c.update({
+		id: this.id
+	}, {
+		'$set': {
+			'lastUpdate': new Date().getTime()
+		}
+	}, {upsert: true}));
 };
