@@ -31,9 +31,7 @@ jobs:
                     pip install -r ats/requirements.txt
             -   name: Start Docker Environment
                 run: |
-                    docker compose -f ats/docker-compose.yml up -d --build
-            -   name: Wait for services
-                run: sleep 30
+                    docker compose -f ats/docker-compose.yml up -d --build --wait
             -   name: Run Acceptance Tests
                 run: behave ats/
             -   name: Tear down
