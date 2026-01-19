@@ -4,6 +4,7 @@ on: [ push ]
 
 jobs:
     build:
+        needs: acceptance_tests
         runs-on: ubuntu-latest
         steps:
             -   uses: actions/checkout@master
@@ -13,5 +14,28 @@ jobs:
                     name: robinj1995/sprint-retrospective-server/sprint-retrospective-server
                     registry: ghcr.io
                     username: RobinJ1995
-                    password: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+                    password: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
                     snapshot: true
+
+    acceptance_tests:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@master
+            -   name: Set up Python
+                uses: actions/setup-python@v2
+                with:
+                    python-version: '3.x'
+            -   name: Install dependencies
+                run: |
+                    python -m pip install --upgrade pip
+                    pip install -r ats/requirements.txt
+            -   name: Start Docker Environment
+                run: |
+                    docker compose -f ats/docker-compose.yml up -d --build
+            -   name: Wait for services
+                run: sleep 30
+            -   name: Run Acceptance Tests
+                run: behave ats/
+            -   name: Tear down
+                if: always()
+                run: docker compose -f ats/docker-compose.yml down

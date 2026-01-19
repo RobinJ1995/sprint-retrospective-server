@@ -1,0 +1,62 @@
+version: '3.7'
+
+services:
+    database:
+        image: 'mongo'
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_DATABASE: sprint-retrospective
+        volumes:
+            - data-mongo:/data/db
+        restart: always
+        stop_grace_period: 0s
+
+    redis:
+        image: 'redis:6.2.3'
+        restart: always
+        volumes:
+            - data-redis:/data
+        ports:
+            - "6379"
+        stop_grace_period: 0s
+
+    api:
+        build: ..
+        image: robinj/sprintretrospective-api
+        ports:
+            # Expose API to host for tests
+            - 5432:5432
+        environment:
+            DB_HOST: 'database'
+            REDIS_URL: 'redis://redis'
+            REDIS_PUBSUB_TOPIC: 'updates'
+            WEBSOCKET_PUBLIC_BASE_URL: 'ws://localhost:5433/'
+            PORT: 5432
+            ADMIN_KEY: 'c74c12d6-7842-4fee-b476-47f4cf3f6526'
+            SUPPRESS_HEALTHCHECK_LOGGING: 'false'
+        stop_grace_period: 0s
+        depends_on:
+            - database
+            - redis
+        restart: always
+
+#    websocket:
+#        build: https://github.com/RobinJ1995/sprint-retrospective-websocket-server.git
+#        image: robinj/sprintretrospective-websocket-server
+#        ports:
+#            - 5433:5433
+#        environment:
+#            MQ_QUEUE_NAME: 'updates'
+#            REDIS_URL: 'redis://redis'
+#            REDIS_PUBSUB_TOPIC: 'updates'
+#            PORT: 5433
+#            SUPPRESS_HEALTHCHECK_LOGGING: 'false'
+#        stop_grace_period: 0s
+#        depends_on:
+#            - redis
+#        restart: always
+
+volumes:
+    data-mongo:
+    data-redis:
