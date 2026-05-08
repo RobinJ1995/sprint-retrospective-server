@@ -3,6 +3,7 @@ import uuid
 from behave import given, when, then, step
 
 BASE_URL = "http://localhost:5432"
+ADMIN_KEY = "c74c12d6-7842-4fee-b476-47f4cf3f6526"
 
 def get_token(context):
     # Authenticate to get a token
@@ -43,6 +44,7 @@ def step_impl(context, mode):
 def step_impl(context, mode):
     assert context.retro.get('voteMode') == mode
 
+@given('I set the title to "{title}"')
 @when('I set the title to "{title}"')
 def step_impl(context, title):
     response = requests.put(f"{BASE_URL}/{context.retro_id}/title", json={'title': title}, headers=context.headers)
@@ -55,6 +57,7 @@ def step_impl(context, title):
 def step_impl(context, title):
     assert context.retro.get('title') == title
 
+@given('I add a "{section}" item "{text}"')
 @when('I add a "{section}" item "{text}"')
 def step_impl(context, section, text):
     response = requests.post(f"{BASE_URL}/{context.retro_id}/{section}", json={'text': text}, headers=context.headers)
@@ -270,3 +273,102 @@ def step_impl(context):
 @then('I should receive an authentication error')
 def step_impl(context):
     assert context.auth_error == 401 or context.auth_error == 403
+
+
+@when('I try to add a "{section}" item "{text}"')
+def step_impl(context, section, text):
+    context.response = requests.post(
+        f"{BASE_URL}/{context.retro_id}/{section}",
+        json={'text': text},
+        headers=context.headers
+    )
+
+
+@when('I try to set the vote mode to "{mode}"')
+def step_impl(context, mode):
+    context.response = requests.put(
+        f"{BASE_URL}/{context.retro_id}/voteMode",
+        json={'voteMode': mode},
+        headers=context.headers
+    )
+
+
+@when('I try to set the access key to "{key}"')
+def step_impl(context, key):
+    context.response = requests.put(
+        f"{BASE_URL}/{context.retro_id}/accessKey",
+        json={'accessKey': key},
+        headers=context.headers
+    )
+
+
+@when('I request the retrospective without authentication')
+def step_impl(context):
+    context.response = requests.get(f"{BASE_URL}/{context.retro_id}/")
+
+
+@when('I request the "{endpoint}" admin endpoint without admin permissions')
+def step_impl(context, endpoint):
+    context.response = requests.get(
+        f"{BASE_URL}/{context.retro_id}/{endpoint}",
+        headers=context.headers
+    )
+
+
+@when('I request the "{endpoint}" admin endpoint with admin permissions')
+def step_impl(context, endpoint):
+    headers = {
+        **context.headers,
+        'x-admin-key': ADMIN_KEY
+    }
+    context.response = requests.get(
+        f"{BASE_URL}/{context.retro_id}/{endpoint}",
+        headers=headers
+    )
+
+
+@when('I request service health')
+def step_impl(context):
+    context.response = requests.get(f"{BASE_URL}/health")
+
+
+@then('the response status should be {status:d}')
+def step_impl(context, status):
+    assert context.response.status_code == status
+
+
+@then('the response should include an error message containing "{message}"')
+def step_impl(context, message):
+    if 'application/json' in context.response.headers.get('Content-Type', ''):
+        payload = context.response.json()
+        response_message = payload.get('message', '')
+    else:
+        response_message = context.response.text
+
+    assert message in response_message
+
+
+@then('the health check should report all dependencies as healthy')
+def step_impl(context):
+    payload = context.response.json()
+    assert payload.get('database') is True
+    assert payload.get('redis') is True
+    assert payload.get('message_queue') is True
+
+
+@then('the raw retrospective should include access key "{key}"')
+def step_impl(context, key):
+    payload = context.response.json()
+    assert payload.get('accessKey') == key
+
+
+@then('the response should be a list of actions')
+def step_impl(context):
+    payload = context.response.json()
+    assert isinstance(payload, list)
+
+
+@then('the action log should contain at least {count:d} entries')
+def step_impl(context, count):
+    payload = context.response.json()
+    assert len(payload) >= count

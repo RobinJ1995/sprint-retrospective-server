@@ -42,3 +42,20 @@ Feature: Retrospective Management
     Then the "good" item "Item with comment" should have a comment "Updated comment"
     When I delete the comment "Updated comment" on the "good" item "Item with comment"
     Then the "good" item "Item with comment" should not have a comment "Updated comment"
+
+  Scenario: Manage comments on action items
+    Given I create a new retrospective
+    When I add a "action" item "Action with comment"
+    And I add a comment "Action comment" to the "action" item "Action with comment"
+    Then the "action" item "Action with comment" should have a comment "Action comment"
+    When I update the comment "Action comment" to "Updated action comment" on the "action" item "Action with comment"
+    Then the "action" item "Action with comment" should have a comment "Updated action comment"
+    When I delete the comment "Updated action comment" on the "action" item "Action with comment"
+    Then the "action" item "Action with comment" should not have a comment "Updated action comment"
+
+  Scenario: Reject duplicate items
+    Given I create a new retrospective
+    When I add a "good" item "Duplicate text"
+    And I try to add a "good" item "Duplicate text"
+    Then the response status should be 422
+    And the response should include an error message containing "There is already an item"
