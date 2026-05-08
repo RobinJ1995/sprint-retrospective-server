@@ -1,17 +1,16 @@
 services:
     database:
-        image: 'mongo:6.0'
+        image: 'mariadb:11.4'
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
-            MONGO_INITDB_DATABASE: sprint-retrospective
+            MARIADB_ROOT_PASSWORD: root
+            MARIADB_DATABASE: sprint-retrospective
         tmpfs:
-            - /data/db
+            - /var/lib/mysql
         healthcheck:
-            test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+            test: ["CMD-SHELL", "mariadb-admin ping -h localhost -uroot -proot"]
             interval: 2s
             timeout: 3s
-            retries: 10
+            retries: 20
         restart: always
         stop_grace_period: 0s
 
@@ -36,9 +35,12 @@ services:
             # Expose API to host for tests
             - 5432:5432
         environment:
-            DB_ENGINE: 'mongodb'
+            DB_ENGINE: 'mariadb'
             DB_HOST: 'database'
-            DB_PORT: 27017
+            DB_PORT: 3306
+            DB_USERNAME: 'root'
+            DB_PASSWORD: 'root'
+            DB_NAME: 'sprint-retrospective'
             REDIS_URL: 'redis://redis'
             REDIS_PUBSUB_TOPIC: 'updates'
             WEBSOCKET_PUBLIC_BASE_URL: 'ws://localhost:5433/'

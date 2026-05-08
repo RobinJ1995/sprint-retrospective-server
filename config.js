@@ -1,11 +1,15 @@
 const {v4: uuid} = require('uuid');
 const ms = require('ms');
 
+const dbEngine = (process.env.DB_ENGINE || 'mongodb').toLowerCase();
+const defaultPort = dbEngine === 'mariadb' ? 3306 : 27017;
+
 module.exports = config = {
 	port: process.env.PORT || 5432,
 	db: {
+		engine: dbEngine,
 		host: process.env.DB_HOST || 'localhost',
-		port: process.env.DB_PORT || 27017,
+		port: process.env.DB_PORT || defaultPort,
 		name: process.env.DB_NAME || 'sprint-retrospective',
 		username: process.env.DB_USERNAME || 'root',
 		password: process.env.DB_PASSWORD || 'root',

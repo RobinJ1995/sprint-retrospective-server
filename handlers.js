@@ -1,7 +1,6 @@
 const Validator = require('input-field-validator');
 const Promise = require('bluebird');
-const RetrospectiveDao = require('./dao/RetrospectiveDao');
-const ActionDao = require('./dao/ActionDao');
+const {RetrospectiveDao, ActionDao} = require('./dao');
 const { TITLE_MAX_LENGTH, TEXT_MAX_LENGTH, VOTE_MODES, ACTIONS, SECTIONS } = require('./constants');
 const ValidationError = require('./error/ValidationError');
 const errorHandler = require('./error_handler');

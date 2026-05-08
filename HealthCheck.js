@@ -15,13 +15,17 @@ module.exports = class HealthCheck {
 		database, redis, message_queue
 	}));
 
-	_database = () => database().then(db => db.stats())
-		.then(({ok}) => !!ok)
-		.catch(err => {
+	_database = () => {
+		const check = database.engine === 'mariadb' ?
+			database().then(db => db.query('SELECT 1 AS ok')).then(([rows]) => rows[0].ok === 1) :
+			database().then(db => db.stats()).then(({ok}) => !!ok);
+
+		return check.catch(err => {
 			console.log('Database health check failed.', err);
 
 			return false;
 		});
+	};
 
 	_redis = () => redis.infoAsync()
 		.then(x => x.includes('redis_version'))

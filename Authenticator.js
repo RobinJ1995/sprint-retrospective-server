@@ -1,7 +1,7 @@
 const JWT = require('jsonwebtoken');
 const Promise = require('bluebird');
 const {v4: uuid} = require('uuid');
-const RetrospectiveDao = require('./dao/RetrospectiveDao');
+const {RetrospectiveDao} = require('./dao');
 const AuthenticationRequired = require('./error/AuthenticationRequired');
 const InvalidAccessKey = require('./error/InvalidAccessKey');
 const config = require('./config').jwt;
