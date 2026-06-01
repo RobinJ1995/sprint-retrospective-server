@@ -9,7 +9,7 @@ class MessagePublisher {
 	}
 
 	send = message =>
-		this.client.publishAsync(this.topic, JSON.stringify(message))
+		this.client.publish(this.topic, JSON.stringify(message))
 			.then(() => !SUPPRESS_HEALTHCHECK_LOGGING && console.log(`<<<<< ${JSON.stringify(message)}`))
 			.catch(err => {
 				console.error(`Failed to send message ${JSON.stringify(message)}`, err);

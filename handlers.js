@@ -13,10 +13,10 @@ const redis = require('./redis');
 
 const actionDao = new ActionDao();
 
-const validate = (input, rules) => {
+const validate = (input = {}, rules) => {
     const validator = new Validator(input, rules);
     if (validator.validate()) {
-        return true;
+        return input;
     }
 
     throw new ValidationError(validator.errors);
@@ -34,11 +34,11 @@ module.exports = app => {
 			}));
 
 	app.post('/:id/good', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).addGood(req.body.text)
+		new RetrospectiveDao(req.params.id).addGood(text)
 			.then(x => res.status(201).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -48,11 +48,11 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.patch('/:id/good/:good_id', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).updateGood(req.params.good_id, req.body.text)
+		new RetrospectiveDao(req.params.id).updateGood(req.params.good_id, text)
 			.then(x => res.status(200).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -94,11 +94,11 @@ module.exports = app => {
 
 	Object.values(SECTIONS).forEach(section => {
 		app.post(`/:id/${section}/:item_id/comment`, AuthenticationMiddleware, (req, res) => {
-			validate(req.body, {
+			const { text } = validate(req.body, {
 				text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 			});
 
-			new RetrospectiveDao(req.params.id).addComment(section, req.params.item_id, req.body.text)
+			new RetrospectiveDao(req.params.id).addComment(section, req.params.item_id, text)
 				.then(() => actionDao.add({
 					retroId: req.params.id,
 					itemId: req.params.item_id,
@@ -108,11 +108,11 @@ module.exports = app => {
 				.catch(err => errorHandler(res, err));
 		});
 		app.patch(`/:id/${section}/:item_id/comment/:comment_id`, AuthenticationMiddleware, (req, res) => {
-			validate(req.body, {
+			const { text } = validate(req.body, {
 				text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 			});
 
-			new RetrospectiveDao(req.params.id).updateComment(section, req.params.comment_id, req.body.text)
+			new RetrospectiveDao(req.params.id).updateComment(section, req.params.comment_id, text)
 				.then(x => res.status(x ? 200 : 204).send(x))
 				.then(() => actionDao.add({
 					retroId: req.params.id,
@@ -134,11 +134,11 @@ module.exports = app => {
 	});
 
 	app.post('/:id/bad', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).addBad(req.body.text)
+		new RetrospectiveDao(req.params.id).addBad(text)
 			.then(x => res.status(201).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -148,11 +148,11 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.patch('/:id/bad/:bad_id', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).updateBad(req.params.bad_id, req.body.text)
+		new RetrospectiveDao(req.params.id).updateBad(req.params.bad_id, text)
 			.then(x => res.status(200).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -189,24 +189,23 @@ module.exports = app => {
 				action: ACTIONS.DOWNVOTE_BAD
 			}))
 			.then(actionId => res.status(201).send({actionId}))
-			.then(x => res.status(201).send(x))
 			.catch(err => errorHandler(res, err));
 	});
 	app.post('/:id/action', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).addAction(req.body.text)
+		new RetrospectiveDao(req.params.id).addAction(text)
 			.then(x => res.status(201).send(x))
 			.catch(err => errorHandler(res, err));
 	});
 	app.patch('/:id/action/:action_id', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { text } = validate(req.body, {
 			text: ['required', 'minlength:1', `maxlength:${TEXT_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).updateAction(req.params.action_id, req.body.text)
+		new RetrospectiveDao(req.params.id).updateAction(req.params.action_id, text)
 			.then(x => res.status(200).send(x))
 			.catch(err => errorHandler(res, err));
 	});
@@ -241,11 +240,11 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.put('/:id/title', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { title } = validate(req.body, {
 			title: ['required', 'minlength:1', `maxlength:${TITLE_MAX_LENGTH}`]
 		});
 
-		new RetrospectiveDao(req.params.id).setTitle(req.body.title)
+		new RetrospectiveDao(req.params.id).setTitle(title)
 			.then(x => res.status(200).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -255,11 +254,11 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.put('/:id/voteMode', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { voteMode } = validate(req.body, {
 			voteMode: ['required', `in:${Object.values(VOTE_MODES).join(',')}`]
 		});
 
-		new RetrospectiveDao(req.params.id).setVoteMode(req.body.voteMode)
+		new RetrospectiveDao(req.params.id).setVoteMode(voteMode)
 			.then(x => res.status(200).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -269,11 +268,11 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.put('/:id/accessKey', AuthenticationMiddleware, (req, res) => {
-		validate(req.body, {
+		const { accessKey } = validate(req.body, {
 			accessKey: ['required', 'minlength:3']
 		});
 
-		new RetrospectiveDao(req.params.id).setAccessKey(req.body.accessKey)
+		new RetrospectiveDao(req.params.id).setAccessKey(accessKey)
 			.then(x => res.status(201).send(x))
 			.then(() => actionDao.add({
 				retroId: req.params.id,
@@ -283,12 +282,12 @@ module.exports = app => {
 			.catch(err => errorHandler(res, err));
 	});
 	app.post('/:id/authenticate', (req, res) => {
-		validate(req.body, {
+		const { accessKey } = validate(req.body, {
 			accessKey: ['optional']
 		});
 
 		return new Authenticator(req.app.config.jwt.secret)
-			.authenticate(req.params.id, req.body.accessKey)
+			.authenticate(req.params.id, accessKey)
 			.then(token => res.status(200).send({token}))
 			.catch(err => errorHandler(res, err));
 	});
@@ -296,10 +295,12 @@ module.exports = app => {
 		new RetrospectiveDao(req.params.id).getRetro()
 			.then(retro => Promise.all([
 				retro,
-				redis.setAsync(
+				redis.set(
 					req.authentication_token.id,
 					JSON.stringify({retro: req.params.id}),
-					'PX', req.authentication_token.expires)
+					{
+						PX: req.authentication_token.expires
+					})
 					.then(() => req.authentication_token.id)
 					.catch(err => {
 						console.error(err);

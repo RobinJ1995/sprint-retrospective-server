@@ -14,7 +14,7 @@ module.exports = class ActionDao {
 		   }) => {
 		const id = uuid();
 
-		return collection().then(coll => coll.insert({
+		return collection().then(coll => coll.insertOne({
 			id,
 			retroId,
 			itemId,

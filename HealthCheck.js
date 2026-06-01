@@ -23,7 +23,7 @@ module.exports = class HealthCheck {
 			return false;
 		});
 
-	_redis = () => redis.infoAsync()
+	_redis = () => redis.info()
 		.then(x => x.includes('redis_version'))
 		.catch(err => {
 			console.log('Redis health check failed.', err);
