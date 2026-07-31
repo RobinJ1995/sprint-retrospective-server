@@ -92,6 +92,7 @@ def step_impl(context, section, text):
     found = any(item['text'] == text for item in items)
     assert not found, f"Item '{text}' found in section '{section}' but shouldn't be"
 
+@given('I update the "{section}" item "{old_text}" to "{new_text}"')
 @when('I update the "{section}" item "{old_text}" to "{new_text}"')
 def step_impl(context, section, old_text, new_text):
     # Find item ID first
@@ -105,6 +106,7 @@ def step_impl(context, section, old_text, new_text):
     response = requests.patch(f"{BASE_URL}/{context.retro_id}/{section}/{item_id}", json={'text': new_text}, headers=context.headers)
     assert response.status_code == 200
 
+@given('I delete the "{section}" item "{text}"')
 @when('I delete the "{section}" item "{text}"')
 def step_impl(context, section, text):
     # Find item ID first
@@ -119,6 +121,7 @@ def step_impl(context, section, text):
     assert response.status_code == 200
 
 # Voting Steps
+@given('I upvote the "{section}" item "{text}"')
 @when('I upvote the "{section}" item "{text}"')
 def step_impl(context, section, text):
     # Find item ID first
@@ -132,6 +135,7 @@ def step_impl(context, section, text):
     response = requests.post(f"{BASE_URL}/{context.retro_id}/{section}/{item_id}/up", headers=context.headers)
     assert response.status_code == 201
 
+@given('I downvote the "{section}" item "{text}"')
 @when('I downvote the "{section}" item "{text}"')
 def step_impl(context, section, text):
     # Find item ID first
@@ -167,6 +171,7 @@ def step_impl(context, section, text, count):
     assert item.get('down', 0) == count
 
 # Comment Steps
+@given('I add a comment "{comment}" to the "{section}" item "{item_text}"')
 @when('I add a comment "{comment}" to the "{section}" item "{item_text}"')
 def step_impl(context, comment, section, item_text):
     response = requests.get(f"{BASE_URL}/{context.retro_id}/", headers=context.headers)
@@ -203,6 +208,7 @@ def step_impl(context, section, item_text, comment):
     found = any(c['text'] == comment for c in comments)
     assert not found
 
+@given('I update the comment "{old_comment}" to "{new_comment}" on the "{section}" item "{item_text}"')
 @when('I update the comment "{old_comment}" to "{new_comment}" on the "{section}" item "{item_text}"')
 def step_impl(context, old_comment, new_comment, section, item_text):
     response = requests.get(f"{BASE_URL}/{context.retro_id}/", headers=context.headers)
@@ -222,6 +228,7 @@ def step_impl(context, old_comment, new_comment, section, item_text):
     response = requests.patch(f"{BASE_URL}/{context.retro_id}/{section}/{item_id}/comment/{comment_id}", json={'text': new_comment}, headers=context.headers)
     assert response.status_code == 200
 
+@given('I delete the comment "{comment}" on the "{section}" item "{item_text}"')
 @when('I delete the comment "{comment}" on the "{section}" item "{item_text}"')
 def step_impl(context, comment, section, item_text):
     response = requests.get(f"{BASE_URL}/{context.retro_id}/", headers=context.headers)
@@ -275,6 +282,8 @@ def step_impl(context):
     assert context.auth_error == 401 or context.auth_error == 403
 
 
+@given('I try to add a "{section}" item "{text}"')
+@then('I try to add a "{section}" item "{text}"')
 @when('I try to add a "{section}" item "{text}"')
 def step_impl(context, section, text):
     context.response = requests.post(
