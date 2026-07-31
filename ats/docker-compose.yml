@@ -1,17 +1,16 @@
 services:
     database:
-        image: 'mongo'
+        image: 'mariadb:11'
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
-            MONGO_INITDB_DATABASE: sprint-retrospective
+            MARIADB_ROOT_PASSWORD: root
+            MARIADB_DATABASE: sprint-retrospective
         volumes:
-            - data-mongo:/data/db
+            - data-mariadb:/var/lib/mysql
         healthcheck:
-            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             interval: 2s
             timeout: 3s
-            retries: 10
+            retries: 30
         restart: always
         stop_grace_period: 0s
 
@@ -73,5 +72,5 @@ services:
 #        restart: always
 
 volumes:
-    data-mongo:
+    data-mariadb:
     data-redis:

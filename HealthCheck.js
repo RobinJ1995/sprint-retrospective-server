@@ -15,8 +15,8 @@ module.exports = class HealthCheck {
 		database, redis, message_queue
 	}));
 
-	_database = () => database().then(db => db.stats())
-		.then(({ok}) => !!ok)
+	_database = () => database().then(pool => pool.query('SELECT 1 AS ok'))
+		.then(([{ok}]) => !!ok)
 		.catch(err => {
 			console.log('Database health check failed.', err);
 
