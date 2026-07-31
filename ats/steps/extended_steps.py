@@ -73,6 +73,45 @@ def step_impl(context):
     context.retro_id_2, context.headers_2 = new_retrospective()
 
 
+def authenticate(retro_id):
+    response = requests.post(f"{BASE_URL}/{retro_id}/authenticate")
+    assert response.status_code == 200, response.text
+    return {'x-token': response.json()['token']}
+
+
+# The frontend builds a retrospective id as a uuid, a dash and a slug derived
+# from the title. The uuid keeps every scenario addressing its own
+# retrospective, so the suite stays re-runnable against a database that already
+# holds data.
+@given('I create a new retrospective with the id suffix "{suffix}"')
+def step_impl(context, suffix):
+    context.retro_id_base = str(uuid.uuid4())
+    context.retro_id = f"{context.retro_id_base}-{suffix}"
+    context.headers = authenticate(context.retro_id)
+
+
+@given('I create a new retrospective with an id of {length:d} characters')
+def step_impl(context, length):
+    prefix = f"{uuid.uuid4()}-"
+    context.retro_id = prefix + 'a' * (length - len(prefix))
+    assert len(context.retro_id) == length
+    context.headers = authenticate(context.retro_id)
+
+
+# Shares the uuid of the retrospective created above, so that the two ids differ
+# only in their suffix.
+@given('I also have a retrospective with the id suffix "{suffix}"')
+def step_impl(context, suffix):
+    context.retro_id_2 = f"{context.retro_id_base}-{suffix}"
+    context.headers_2 = authenticate(context.retro_id_2)
+
+
+@then('the second retrospective should still be open')
+def step_impl(context):
+    response = requests.post(f"{BASE_URL}/{context.retro_id_2}/authenticate")
+    assert response.status_code == 200, response.text
+
+
 @when('I add a "{section}" item "{text}" to the second retrospective')
 @given('I add a "{section}" item "{text}" to the second retrospective')
 def step_impl(context, section, text):
