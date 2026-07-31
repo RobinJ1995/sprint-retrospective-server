@@ -28,7 +28,8 @@ const SCHEMA = [
 		has_comments TINYINT(1) NOT NULL DEFAULT 0,
 		PRIMARY KEY (seq),
 		UNIQUE KEY uq_retro_item_id (id),
-		KEY ix_retro_item_retro (retro_id, section, seq),
+		-- Ordered by seq so that listing a retrospective's items needs no sort.
+		KEY ix_retro_item_retro_seq (retro_id, seq),
 		CONSTRAINT fk_retro_item_retro FOREIGN KEY (retro_id) REFERENCES retro (id) ON DELETE CASCADE
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
 
@@ -56,6 +57,16 @@ const SCHEMA = [
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`
 ];
 
+// Brings the indexes of a database that was created by an earlier version of
+// the schema above into line with it. Both statements are no-ops on a database
+// the schema above has just created, and on one that has already been brought
+// into line. The index is created before the one it replaces is dropped, so
+// that retro_id always stays indexed for the foreign key.
+const INDEXES = [
+	`CREATE INDEX IF NOT EXISTS ix_retro_item_retro_seq ON retro_item (retro_id, seq)`,
+	`DROP INDEX IF EXISTS ix_retro_item_retro ON retro_item`
+];
+
 const pool = mariadb.createPool({
 	...(config.connectionString ? {
 		connectionString: config.connectionString
@@ -75,7 +86,7 @@ const pool = mariadb.createPool({
 	collation: 'utf8mb4_bin'
 });
 
-const createSchema = conn => SCHEMA.reduce(
+const createSchema = conn => [...SCHEMA, ...INDEXES].reduce(
 	(promise, statement) => promise.then(() => conn.query(statement)),
 	Promise.resolve());
 
