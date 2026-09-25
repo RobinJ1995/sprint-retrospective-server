@@ -5,8 +5,9 @@ services:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
             MONGO_INITDB_DATABASE: sprint-retrospective
-        volumes:
-            - data-mongo:/data/db
+        # Nothing a test writes needs to reach the disk.
+        tmpfs:
+            - /data/db
         healthcheck:
             test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
             interval: 2s
@@ -73,5 +74,4 @@ services:
 #        restart: always
 
 volumes:
-    data-mongo:
     data-redis:
