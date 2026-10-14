@@ -4,9 +4,7 @@ module.exports = (res, error) => {
 	if (res.headersSent) {
 		console.warn('Headers already sent.');
 		return;
-	}
-
-	if (error.httpstatus && error.getResponseBody) {
+	} else if (error.httpstatus && error.getResponseBody) {
 		return res.status(error.httpstatus).send(error.getResponseBody());
 	}
 
