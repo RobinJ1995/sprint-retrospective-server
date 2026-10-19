@@ -14,12 +14,12 @@ const redis = require('./redis');
 const actionDao = new ActionDao();
 
 const validate = (input = {}, rules) => {
-    const validator = new Validator(input, rules);
-    if (validator.validate()) {
-        return input;
-    }
+	const validator = new Validator(input, rules);
+	if (validator.validate()) {
+		return input;
+	}
 
-    throw new ValidationError(validator.errors);
+	throw new ValidationError(validator.errors);
 };
 
 module.exports = app => {
